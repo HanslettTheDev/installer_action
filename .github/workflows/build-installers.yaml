@@ -40,4 +40,4 @@ jobs:
         with:
           name: Venom-Installer-${{ matrix.targetplatform }}
           path: |
-            **/Venom-Installer-*.exe
+            **/venom-*.exe
