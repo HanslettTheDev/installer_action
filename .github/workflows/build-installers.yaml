@@ -1,0 +1,43 @@
+name: Windows Installer NSIS
+
+on: [push]
+
+jobs:
+  compile:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+        targetplatform: [x86, x64]
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.targetplatform }}
+
+      - name: Install NSIS for building Installers
+        run: |
+          curl -L https://sourceforge.net/projects/nsis/files/latest/download -o NSISInstaller.exe
+          Start-Process -FilePath "NSISInstaller.exe" -ArgumentList "/S" -Wait
+          del "NSISInstaller.exe"
+
+      - name: Build the NSIS files
+        run: |
+          python index.py
+
+      - name: Build Venom's Installer
+        run: |
+          makensis.exe base.nsi
+
+      - name: Deploy PyAfipWs Installer
+        uses: actions/upload-artifact@v3
+        with:
+          name: Venom-Installer-${{ matrix.targetplatform }}
+          path: |
+            **/Venom-Installer-*.exe
